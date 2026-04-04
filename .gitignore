@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Database
+*.db
+
+# Uploads
+backend/uploads/
+
+# VS Code
+.vscode/
+
+# Environment
+.env
