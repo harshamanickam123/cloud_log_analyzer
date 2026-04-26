@@ -3,6 +3,9 @@ from flask_cors import CORS
 import os
 import sqlite3
 from groq import Groq
+# ✅ ADD THESE 2 LINES HERE
+from dotenv import load_dotenv
+load_dotenv()
 
 from config import UPLOAD_FOLDER, SECRET_KEY
 from analyzer import analyze_log
@@ -114,14 +117,11 @@ def upload():
     file.save(filepath)
 
     return jsonify({"path": filepath})
-
-# ---------------- ANALYZE (🔥 FULL FIX) ----------------
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
     print("🔵 Analyze API called")
 
     data = request.get_json(silent=True)
-    print("📥 Incoming:", data)
 
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
@@ -130,7 +130,6 @@ def analyze():
     log_text = data.get("logs")
 
     try:
-        # ✅ FILE CASE
         if filepath:
             if not os.path.exists(filepath):
                 return jsonify({"error": "File not found"}), 404
@@ -138,22 +137,19 @@ def analyze():
             with open(filepath, "r", errors="ignore") as f:
                 content = f.read()
 
-        # ✅ PASTE LOG CASE
         elif log_text:
             content = log_text
 
         else:
             return jsonify({"error": "No input provided"}), 400
 
-        print("📄 Content length:", len(content))
-
         # 🔥 ANALYSIS
         result = analyze_log(content)
 
-        # 🔥 REQUIRED FOR FRONTEND
+        # 🔥 EXTRA DATA
         result["raw_logs"] = content.split("\n")
 
-        # 🔥 AI ANALYSIS
+        # 🔥 AI EXPLANATION
         ai_result = ai_explain(content[:2000])
         result["ai_explanation"] = ai_result
 
@@ -162,7 +158,7 @@ def analyze():
 
         print("✅ Analysis success")
 
-        return jsonify({"message": "Analysis complete"})
+        return jsonify(result)   # 🔥🔥 MAIN FIX
 
     except Exception as e:
         print("❌ ERROR:", str(e))

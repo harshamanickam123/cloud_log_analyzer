@@ -60,6 +60,7 @@
             height: 100vh;
             z-index: 100;
             animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.3s ease;
         }
 
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -104,7 +105,7 @@
         .profile-btn:hover { background: var(--accent-gradient); transform: translateY(-2px); }
 
         /* --- MAIN CONTENT --- */
-        .main { margin-left: var(--nav-w); flex: 1; padding: 40px; animation: fadeIn 1s ease-out; }
+        .main { margin-left: var(--nav-w); flex: 1; padding: 40px; animation: fadeIn 1s ease-out; transition: margin-left 0.3s ease;}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
@@ -238,15 +239,77 @@
     50% { opacity: 0.4; }
     100% { opacity: 1; }
 }
+.logo-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+/* Toggle button */
+/* Toggle button - Adjusted position */
+#menuToggle {
+    position: absolute;
+    top: 50px;
+    /* This moves it further left when sidebar is open */
+    left: calc(var(--nav-w) - 60px); 
+    z-index: 1001;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    transition: left 0.3s ease, background 0.3s ease;
+    box-shadow: 0 0 10px rgba(79,156,249,0.4);
+}
+
+/* Move the button closer to the edge when closed */
+.sidebar.closed ~ #menuToggle {
+    left: 15px; 
+}
+
+/* Prevent overlapping: Add padding to the topbar when sidebar is closed */
+.sidebar.closed ~ .main .topbar {
+    padding-left: 50px; 
+    transition: padding-left 0.3s ease;
+}
+
+/* Ensure smooth transition for the main content */
+.main .topbar {
+    transition: padding-left 0.3s ease;
+}
+/* Hide sidebar */
+.sidebar.closed {
+    transform: translateX(-100%);
+}
+.sidebar.closed ~ .main {
+    margin-left: 0;
+}
+/* Mobile view */
+@media (max-width: 768px) {
+
+    .main {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+}
 
     </style>
 </head>
 <body>
-
+<button id="menuToggle">☰</button>
     <aside class="sidebar">
         <div class="sidebar-logo">
             <div class="logo-mark">
-                <div class="logo-icon">🚀</div>
+                <img src="./images/cloud log analyzer logo.png" class="logo-img">
                 <div>
                     <div class="logo-label">Cloud Log Analyzer</div>
                 </div>
@@ -265,9 +328,12 @@
             <button class="profile-btn" onclick="toggleProfile()">👤 View Profile</button>
         </div>
     </aside>
+    
+    
 
     <main class="main">
         <div class="topbar">
+            
             <div>
                 <h1 style="font-size: 24px;">Welcome to Cloud Log Analyzer</h1>
                 <p style="color: var(--text-muted); font-size: 13px;" id="liveClock">Initializing...</p>
@@ -333,6 +399,7 @@
 
             <div class="panel" style="grid-column: span 2; margin-top: 10px;">
                 <div id="alertBox"></div>
+                <div id="anomalyBox" style="margin-top:10px; padding:10px; border-radius:10px; font-weight:600;"></div>
                 <div class="panel-title">🤖 AI Reasoning</div>
                 <div id="explanation" style="background: var(--bg); padding: 15px; border-radius: 10px; min-height: 60px; font-size: 13px;">
                     Upload a file to begin automated log correlation.
@@ -342,6 +409,7 @@
         <div class="panel" style="margin-top:20px;">
     <div class="panel-title">📊 Attack Analysis Graph</div>
     <canvas id="attackChart" height="100"></canvas>
+    <canvas id="trendChart" height="100" style="margin-top:20px;"></canvas>
 </div>
     </main>
 
@@ -350,7 +418,7 @@
             <div style="display:flex; align-items:center; gap:15px; margin-bottom:25px;">
                 <div class="logo-icon">U</div>
                 <div>
-                    <h2 style="font-size:18px;">Analyst Profile</h2>
+                    <h2 id="userName" style="font-size:18px;">User</h2>
                     <p id="userEmail" style="font-size:12px; color:var(--text-muted);">analyst@cloudlog.ai</p>
                 </div>
                 <button class="btn" onclick="logout()" style="margin-left:auto; color:var(--error); border: 1px solid var(--error); padding:5px 10px; font-size:11px;">Logout</button>
@@ -367,10 +435,11 @@
         if (localStorage.getItem("loggedIn") !== "true") {
     alert("Please login first!");
     window.location.href = "index.html";
-}
-const user = JSON.parse(localStorage.getItem("user"));
+}const user = JSON.parse(localStorage.getItem("user"));
 if (user) {
+     document.getElementById("userName").innerText = user.name;
     document.getElementById("userEmail").innerText = user.email;
+    document.querySelector(".logo-icon").innerText = user.name[0].toUpperCase();
 }
         // --- State Management ---
         let activityHistory = JSON.parse(localStorage.getItem('logs_history')) || [];
@@ -450,6 +519,100 @@ if (user) {
 }
 
 let chart;
+
+let trendChart;
+
+function renderTrendGraph(trendData) {
+    const canvas = document.getElementById("trendChart");
+
+    // ❗ Hide graph if no meaningful data
+    if (!trendData || trendData.length < 2) {
+        canvas.style.display = "none";
+        return;
+    }
+
+    canvas.style.display = "block";
+
+    const ctx = canvas.getContext("2d");
+
+    if (trendChart) trendChart.destroy();
+
+    trendChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: trendData.map(t => t.time),
+            datasets: [{
+                label: "📈 Error Trend Over Time",
+                data: trendData.map(t => t.errors),
+
+                borderWidth: 3,
+                tension: 0.4, // smooth curve
+
+                fill: true,
+                backgroundColor: "rgba(239, 68, 68, 0.15)",
+
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: "#ef4444"
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 1200,
+                easing: "easeInOutQuart"
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#94a3b8",
+                        font: { size: 12 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: "#111827",
+                    titleColor: "#ffffff",
+                    bodyColor: "#d1d5db",
+                    borderColor: "#4f9cf9",
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: "#94a3b8" },
+                    grid: { color: "rgba(255,255,255,0.05)" },
+                    title: {
+                        display: true,
+                        text: "Time (HH:MM)",
+                        color: "#94a3b8"
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: "#94a3b8" },
+                    grid: { color: "rgba(255,255,255,0.05)" },
+                    title: {
+                        display: true,
+                        text: "Error Count",
+                        color: "#94a3b8"
+                    }
+                }
+            }
+        }
+    });
+}
+
+function showAnomaly(data) {
+    const box = document.getElementById("anomalyBox");
+
+    if (data.anomaly) {
+        box.innerText = "🚨 " + data.anomaly_reason;
+        box.style.background = "#ef4444";
+    } else {
+        box.innerText = "✅ No anomaly detected";
+        box.style.background = "#22c55e";
+    }
+}
 
 function renderChart(errors, warnings, failed) {
     const ctx = document.getElementById('attackChart').getContext('2d');
@@ -622,6 +785,15 @@ else if (aiText.includes("low")) {
         // Chart
         renderChart(result.errors, result.warnings, result.failed_logins);
 
+   if (result.trend && result.trend.length > 1) {
+    renderTrendGraph(result.trend);
+} else {
+    document.getElementById("trendChart").style.display = "none";
+}
+
+// 🚨 ANOMALY
+showAnomaly(result);
+
         // =========================
         // 🚨 ALERT BOX
         // =========================
@@ -793,6 +965,18 @@ doc.text(lines, 10, 20);
 
         // Initialize on load
         updateSidebarFiles();
+        const toggleBtn = document.getElementById("menuToggle");
+const sidebar = document.querySelector(".sidebar");
+
+toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("closed");
+    // OPTIONAL: move button dynamically
+    if (sidebar.classList.contains("closed")) {
+        toggleBtn.style.left = "15px";
+    } else {
+        toggleBtn.style.left = "230px";
+    }
+});
     </script>
 </body>
 </html>
