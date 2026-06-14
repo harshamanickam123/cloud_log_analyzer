@@ -1,4 +1,4 @@
-const API = "http://localhost:5000";
+const API = "";
 
 function showMessage(msg, type) {
     const el = document.getElementById("msg");
@@ -20,13 +20,16 @@ async function login() {
         const res = await fetch(API + "/login", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({email, password})
+           body: JSON.stringify({
+    username: email,
+    password: password
+})
         });
 
         const data = await res.json();
 
         if (res.ok) {
-            localStorage.setItem("token", data.token);
+            
             showMessage("Login success", "success");
             setTimeout(() => window.location = "dashboard.html", 1000);
         } else {
