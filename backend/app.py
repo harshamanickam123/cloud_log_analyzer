@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
 import sqlite3
@@ -169,10 +169,25 @@ def analyze():
 def result():
     return jsonify(LAST_RESULT)
 
-# ---------------- HOME ----------------
+
+# Frontend pages
+
 @app.route("/")
-def home():
-    return "Cloud Log Analyzer Backend Running ✅"
+def index():
+    return send_from_directory("../frontend", "index.html")
+
+@app.route("/dashboard.html")
+def dashboard():
+    return send_from_directory("../frontend", "dashboard.html")
+
+@app.route("/js/<path:filename>")
+def js_files(filename):
+    return send_from_directory("../frontend/js", filename)
+
+@app.route("/images/<path:filename>")
+def image_files(filename):
+    return send_from_directory("../frontend/images", filename)
+
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
