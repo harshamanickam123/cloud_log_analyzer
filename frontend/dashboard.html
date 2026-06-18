@@ -709,7 +709,7 @@ async function realAnalyze(e) {
         // 🔹 CASE 1: PASTE LOGS
         // -------------------------
         if (pastedLogs) {
-            const analyzeRes = await fetch("http://127.0.0.1:5000/api/analyze", {
+            const analyzeRes = await fetch("/api/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ logs: pastedLogs })
@@ -717,7 +717,7 @@ async function realAnalyze(e) {
 
             if (!analyzeRes.ok) throw new Error("Paste analysis failed");
 
-            const resultRes = await fetch("http://127.0.0.1:5000/api/result");
+            const resultRes = await fetch("/api/result");
             result = await resultRes.json();
 
             parsedLogs = pastedLogs.split("\n");
@@ -730,7 +730,7 @@ async function realAnalyze(e) {
             const formData = new FormData();
             formData.append("file", currentFile);
 
-            const uploadRes = await fetch("http://127.0.0.1:5000/api/upload", {
+            const uploadRes = await fetch("/api/upload", {
                 method: "POST",
                 body: formData
             });
@@ -738,7 +738,7 @@ async function realAnalyze(e) {
             const uploadData = await uploadRes.json();
             if (!uploadRes.ok) throw new Error("Upload failed");
 
-            const analyzeRes = await fetch("http://127.0.0.1:5000/api/analyze", {
+            const analyzeRes = await fetch("/api/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ path: uploadData.path })
@@ -746,7 +746,7 @@ async function realAnalyze(e) {
 
             if (!analyzeRes.ok) throw new Error("Analysis failed");
 
-            const resultRes = await fetch("http://127.0.0.1:5000/api/result");
+            const resultRes = await fetch("/api/result");
             result = await resultRes.json();
 
             parsedLogs = result.raw_logs || [];
