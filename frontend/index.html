@@ -186,14 +186,13 @@
                 </span>
             </div>
         
-
             <div class="form_back">
                 <div class="logo-text">CloudLog Analyzer</div>
-                <div class="form_details">Register </div>
-                <input placeholder="Full Name" class="input" type="text">
-                <input placeholder="Work Email" class="input" type="email">
-                <input placeholder="Set Password" class="input" type="password">
-                <input placeholder="Confirm Password" class="input" type="password">
+                <div class="form_details">Register</div>
+                <input placeholder="Full Name" class="input" type="text" required>
+                <input placeholder="Work Email" class="input" type="email" required>
+                <input placeholder="Set Password" class="input" type="password" required>
+                <input placeholder="Confirm Password" class="input" type="password" required>
                 <button type="submit" class="btn">Create Account</button>
                 <span class="switch">Already authorized? 
                     <label class="signup_tog" for="signup_toggle">Sign In</label>
@@ -201,6 +200,7 @@
             </div>
         </form>
     </div>
+
 <script>
 async function handleAuth(e) {
     e.preventDefault();
@@ -214,6 +214,13 @@ async function handleAuth(e) {
         const name = inputs[0].value;
         const email = inputs[1].value;
         const password = inputs[2].value;
+        const confirmPassword = inputs[3].value; // Capture confirm field
+
+        // ✅ Check if passwords match before hitting backend
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
 
         const res = await fetch("/register", {
             method: "POST",
@@ -226,8 +233,10 @@ async function handleAuth(e) {
         if (data.status === "success") {
             alert("Registered successfully!");
             document.getElementById("signup_toggle").checked = false;
+            // Clean fields
+            inputs.forEach(input => input.value = "");
         } else {
-            alert(data.message);
+            alert(data.message || "Registration failed!");
         }
 
     } else {
@@ -246,13 +255,10 @@ async function handleAuth(e) {
         const data = await res.json();
 
         if (data.status === "success") {
-            // SAVE LOGIN STATE
             localStorage.setItem("loggedIn", "true");
-
-            // GO TO DASHBOARD
             window.location.href = "dashboard.html";
         } else {
-            alert("Login failed!");
+            alert("Login failed! Please check your credentials.");
         }
     }
 }
