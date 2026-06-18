@@ -11,6 +11,9 @@ from config import UPLOAD_FOLDER, SECRET_KEY
 from analyzer import analyze_log
 
 app = Flask(__name__)
+# Ensure the upload folder exists immediately when deploying to Render
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 # ✅ FIX 1: Proper CORS
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -192,4 +195,4 @@ def image_files(filename):
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
