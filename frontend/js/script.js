@@ -1,5 +1,4 @@
-const API = "";
-
+const API = "https://cloud-log-analyzer-v2fq.onrender.com";
 function showMessage(msg, type) {
     const el = document.getElementById("msg");
     el.innerText = msg;
@@ -29,10 +28,23 @@ async function login() {
         const data = await res.json();
 
         if (res.ok) {
-            
-            showMessage("Login success", "success");
-            setTimeout(() => window.location = "dashboard.html", 1000);
-        } else {
+
+    localStorage.setItem("loggedIn", "true");
+
+    localStorage.setItem("user", JSON.stringify({
+        name: email,
+        email: email
+    }));
+
+    showMessage("Login Success", "success");
+
+    setTimeout(() => {
+
+        window.location = "dashboard.html";
+
+    }, 1000);
+
+} else {
             showMessage(data.message || "Login failed", "error");
         }
     } catch {
@@ -43,8 +55,9 @@ async function login() {
 /* REGISTER */
 async function register() {
     const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+const email = document.getElementById("registerEmail").value;
+const password = document.getElementById("registerPassword").value;
+const confirmPassword = document.getElementById("confirmPassword").value;
 
     if (!name || !email || !password) {
         showMessage("Fill all fields", "error");
@@ -136,4 +149,17 @@ async function getResult() {
     // Display AI explanation
     document.getElementById("aiResult").innerText =
         data.ai_explanation || "No AI result";
+}
+function handleAuth(event) {
+    event.preventDefault();
+
+    const isSignup = document.getElementById("signup_toggle").checked;
+
+    if (isSignup) {
+        register();
+    } else {
+        login();
+    }
+
+    return false;
 }

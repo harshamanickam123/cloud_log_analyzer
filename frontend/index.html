@@ -174,12 +174,22 @@
     <div class="container">
         <input type="checkbox" id="signup_toggle">
         
-        <form class="form" onsubmit="return handleAuth(event)">
+        <form class="form" novalidate onsubmit="return handleAuth(event)">
             <div class="form_front">
                 <div class="logo-text">CloudLog Analyzer</div>
                 <div class="form_details">Welcome Back</div>
-                <input placeholder="Enter Username" class="input" type="text" required>
-                <input placeholder="Enter Password" class="input" type="password" required>
+                <input
+    id="email"
+    placeholder="Enter Email"
+    class="input"
+    type="email"
+    required>
+                <input
+    id="password"
+    placeholder="Enter Password"
+    class="input"
+    type="password"
+    required>
                 <button type="submit" class="btn">Login</button>
                 <span class="switch">New to CloudLog? 
                     <label class="signup_tog" for="signup_toggle">Create Account</label>
@@ -187,20 +197,46 @@
             </div>
         
             <div class="form_back">
-                <div class="logo-text">CloudLog Analyzer</div>
-                <div class="form_details">Register</div>
-                <input placeholder="Full Name" class="input" type="text" required>
-                <input placeholder="Work Email" class="input" type="email" required>
-                <input placeholder="Set Password" class="input" type="password" required>
-                <input placeholder="Confirm Password" class="input" type="password" required>
-                <button type="submit" class="btn">Create Account</button>
-                <span class="switch">Already authorized? 
-                    <label class="signup_tog" for="signup_toggle">Sign In</label>
-                </span>
-            </div>
-        </form>
-    </div>
+    <div class="logo-text">CloudLog Analyzer</div>
+    <div class="form_details">Register</div>
 
+    <input
+        id="name"
+        placeholder="Full Name"
+        class="input"
+        type="text"
+        required>
+
+    <input
+        id="registerEmail"
+        placeholder="Work Email"
+        class="input"
+        type="email"
+        required>
+
+    <input
+        id="registerPassword"
+        placeholder="Set Password"
+        class="input"
+        type="password"
+        required>
+
+    <input
+        id="confirmPassword"
+        placeholder="Confirm Password"
+        class="input"
+        type="password"
+        required>
+
+    <button type="submit" class="btn">Create Account</button>
+
+    <span class="switch">
+        Already authorized?
+        <label class="signup_tog" for="signup_toggle">
+            Sign In
+        </label>
+    </span>
+</div>
 <script>
 async function handleAuth(e) {
     e.preventDefault();
